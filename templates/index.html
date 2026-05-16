@@ -1,0 +1,586 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<title>Trapper</title>
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --bg:       #0d1117;
+  --surface:  #161b22;
+  --border:   #30363d;
+  --muted:    #8b949e;
+  --text:     #e6edf3;
+  --blue:     #1f6feb;
+  --green:    #2ea043;
+  --purple:   #6e40c9;
+  --orange:   #d29922;
+  --red:      #da3633;
+  --teal:     #0e8a74;
+}
+
+html, body {
+  height: 100%;
+  overflow: hidden;
+  background: var(--bg);
+  color: var(--text);
+  font-family: ui-monospace, 'SF Mono', Consolas, 'Liberation Mono', monospace;
+  font-size: 14px;
+}
+
+body {
+  display: flex;
+  flex-direction: column;
+}
+
+/* ── Header ── */
+.header {
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  padding: 8px 10px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+.header h1 {
+  font-size: 13px;
+  color: var(--muted);
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  flex-shrink: 0;
+}
+
+.header select {
+  flex: 1;
+  min-width: 0;
+  background: var(--bg);
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 6px 8px;
+  font-family: inherit;
+  font-size: 13px;
+  appearance: none;
+  -webkit-appearance: none;
+}
+
+.icon-btn {
+  background: var(--bg);
+  color: var(--muted);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  width: 36px;
+  height: 36px;
+  font-size: 16px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  touch-action: manipulation;
+}
+.icon-btn:active { opacity: 0.6; }
+
+/* ── Preview ── */
+.preview-wrap {
+  flex-shrink: 0;
+  height: 160px;
+  background: #000;
+  border-bottom: 1px solid var(--border);
+  position: relative;
+}
+
+#preview {
+  width: 100%;
+  height: 100%;
+  overflow-y: auto;
+  overflow-x: auto;
+  padding: 6px 8px;
+  font-family: inherit;
+  font-size: 11px;
+  line-height: 1.45;
+  white-space: pre;
+  color: #c9d1d9;
+}
+
+.preview-status {
+  position: absolute;
+  top: 4px;
+  right: 6px;
+  font-size: 9px;
+  color: var(--muted);
+  pointer-events: none;
+}
+
+/* ── Controls scroll area ── */
+.controls {
+  flex: 1;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  padding: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+/* ── Section card ── */
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 10px;
+}
+
+.card-label {
+  font-size: 9px;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  margin-bottom: 8px;
+}
+
+/* ── Buttons ── */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  border-radius: 8px;
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  min-height: 46px;
+  padding: 8px 10px;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+  transition: filter 0.1s;
+  user-select: none;
+  -webkit-user-select: none;
+  line-height: 1;
+}
+.btn:active { filter: brightness(0.75); }
+
+.btn-blue   { background: var(--blue);   color: #fff; }
+.btn-green  { background: var(--green);  color: #fff; }
+.btn-purple { background: var(--purple); color: #fff; }
+.btn-orange { background: var(--orange); color: #fff; }
+.btn-red    { background: var(--red);    color: #fff; }
+.btn-teal   { background: var(--teal);   color: #fff; }
+.btn-ghost  { background: #21262d;       color: var(--text); border: 1px solid var(--border); }
+
+/* ── D-pad ── */
+.dpad {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 5px;
+  max-width: 200px;
+  margin: 0 auto;
+}
+.dpad .btn { width: 100%; min-height: 50px; font-size: 18px; }
+.dpad-blank { min-height: 50px; }
+
+/* ── Button rows ── */
+.btn-row {
+  display: flex;
+  gap: 5px;
+  flex-wrap: wrap;
+}
+.btn-row .btn { flex: 1; min-width: 56px; font-size: 12px; }
+
+/* ── Text input area ── */
+.text-area {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.text-row {
+  display: flex;
+  gap: 6px;
+}
+
+#text-input {
+  flex: 1;
+  background: #21262d;
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 10px 12px;
+  font-family: inherit;
+  font-size: 14px;
+  outline: none;
+  min-height: 46px;
+  -webkit-appearance: none;
+}
+#text-input:focus { border-color: var(--blue); }
+
+.send-btns {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.send-btns .btn { min-height: 0; padding: 6px 12px; font-size: 12px; white-space: nowrap; }
+
+/* ── No-session state ── */
+#no-session {
+  text-align: center;
+  padding: 20px;
+  color: var(--muted);
+  display: none;
+}
+#no-session p { margin-bottom: 12px; font-size: 13px; }
+
+/* ── Flash feedback ── */
+.flash {
+  position: fixed;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: var(--red);
+  color: #fff;
+  padding: 8px 16px;
+  border-radius: 8px;
+  font-size: 12px;
+  z-index: 100;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.2s;
+}
+.flash.show { opacity: 1; }
+
+/* ── Refresh indicator ── */
+.dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--green);
+  display: inline-block;
+  flex-shrink: 0;
+}
+.dot.err { background: var(--red); }
+</style>
+</head>
+<body>
+
+<!-- Header -->
+<div class="header">
+  <h1>Trapper</h1>
+  <span class="dot" id="status-dot"></span>
+  <select id="session-sel" title="Session"></select>
+  <select id="window-sel" title="Window"></select>
+  <button class="icon-btn" id="refresh-btn" title="Refresh">&#8635;</button>
+</div>
+
+<!-- Pane preview -->
+<div class="preview-wrap">
+  <pre id="preview"></pre>
+  <div class="preview-status" id="preview-status">live</div>
+</div>
+
+<!-- No sessions fallback -->
+<div id="no-session">
+  <p>No active tmux sessions found.</p>
+  <button class="btn btn-green" onclick="newSession()">+ New Session</button>
+</div>
+
+<!-- Controls -->
+<div class="controls" id="controls">
+
+  <!-- Navigate panes -->
+  <div class="card">
+    <div class="card-label">Navigate Panes</div>
+    <div class="dpad">
+      <div class="dpad-blank"></div>
+      <button class="btn btn-blue" onclick="act('nav-up')">&#9650;</button>
+      <div class="dpad-blank"></div>
+      <button class="btn btn-blue" onclick="act('nav-left')">&#9664;</button>
+      <div class="dpad-blank"></div>
+      <button class="btn btn-blue" onclick="act('nav-right')">&#9654;</button>
+      <div class="dpad-blank"></div>
+      <button class="btn btn-blue" onclick="act('nav-down')">&#9660;</button>
+      <div class="dpad-blank"></div>
+    </div>
+  </div>
+
+  <!-- Manage panes -->
+  <div class="card">
+    <div class="card-label">Panes</div>
+    <div class="btn-row">
+      <button class="btn btn-teal" onclick="act('split-h')">Split &#9474;</button>
+      <button class="btn btn-teal" onclick="act('split-v')">Split &#9472;</button>
+      <button class="btn btn-purple" onclick="act('pane-zoom')">&#9974; Zoom</button>
+      <button class="btn btn-red" onclick="confirmAct('pane-kill', 'Kill this pane?')">Kill Pane</button>
+    </div>
+  </div>
+
+  <!-- Manage windows -->
+  <div class="card">
+    <div class="card-label">Windows</div>
+    <div class="btn-row">
+      <button class="btn btn-green" onclick="act('win-new')">+ Win</button>
+      <button class="btn btn-blue" onclick="act('win-prev')">&#9664; Prev</button>
+      <button class="btn btn-blue" onclick="act('win-next')">Next &#9654;</button>
+      <button class="btn btn-red" onclick="confirmAct('win-kill', 'Kill this window?')">Kill Win</button>
+    </div>
+  </div>
+
+  <!-- Special keys -->
+  <div class="card">
+    <div class="card-label">Keys</div>
+    <div class="btn-row">
+      <button class="btn btn-orange" onclick="key('C-c')" title="Ctrl+C">^C</button>
+      <button class="btn btn-orange" onclick="key('Escape')" title="Escape">Esc</button>
+      <button class="btn btn-orange" onclick="key('Tab')" title="Tab">Tab</button>
+      <button class="btn btn-orange" onclick="key('Enter')" title="Enter">&#8629; Enter</button>
+      <button class="btn btn-orange" onclick="key('C-z')" title="Ctrl+Z">^Z</button>
+      <button class="btn btn-orange" onclick="key('C-d')" title="Ctrl+D">^D</button>
+      <button class="btn btn-orange" onclick="key('C-l')" title="Ctrl+L (clear)">^L</button>
+      <button class="btn btn-orange" onclick="key('C-a')" title="Ctrl+A (start of line)">^A</button>
+    </div>
+    <!-- Arrow keys (for copy mode / readline) -->
+    <div class="btn-row" style="margin-top:5px;">
+      <button class="btn btn-ghost" onclick="key('Up')">&#9650; Up</button>
+      <button class="btn btn-ghost" onclick="key('Down')">&#9660; Down</button>
+      <button class="btn btn-ghost" onclick="key('Left')">&#9664;</button>
+      <button class="btn btn-ghost" onclick="key('Right')">&#9654;</button>
+    </div>
+  </div>
+
+  <!-- Scroll / copy mode -->
+  <div class="card">
+    <div class="card-label">Scroll / Copy Mode</div>
+    <div class="btn-row">
+      <button class="btn btn-purple" onclick="act('copy-mode')">Copy Mode</button>
+      <button class="btn btn-ghost" onclick="key('PageUp')">PgUp</button>
+      <button class="btn btn-ghost" onclick="key('PageDown')">PgDn</button>
+      <button class="btn btn-ghost" onclick="key('q')">Exit (q)</button>
+    </div>
+  </div>
+
+  <!-- Text input -->
+  <div class="card">
+    <div class="card-label">Type &amp; Send</div>
+    <div class="text-area">
+      <div class="text-row">
+        <input type="text" id="text-input" placeholder="command or text..." autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false">
+        <div class="send-btns">
+          <button class="btn btn-green" onclick="sendText(true)">&#8629; Run</button>
+          <button class="btn btn-ghost" onclick="sendText(false)">Send</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Session / danger zone -->
+  <div class="card">
+    <div class="card-label">Session</div>
+    <div class="btn-row">
+      <button class="btn btn-green" onclick="newSession()">+ Session</button>
+      <button class="btn btn-red" onclick="confirmAct('detach', 'Detach from session?')">Detach</button>
+    </div>
+  </div>
+
+</div><!-- /controls -->
+
+<div class="flash" id="flash"></div>
+
+<script>
+const state = {
+  session: '',
+  window: '',
+  autoScrollPreview: true,
+  refreshTimer: null,
+};
+
+function target() {
+  const win = state.window ? state.window.split(':')[0] : '';
+  return win ? `${state.session}:${win}` : state.session;
+}
+
+async function api(path, method = 'GET', body = null) {
+  const opts = { method };
+  if (body !== null) {
+    opts.headers = { 'Content-Type': 'application/json' };
+    opts.body = JSON.stringify(body);
+  }
+  try {
+    const r = await fetch(path, opts);
+    return await r.json();
+  } catch (e) {
+    return { ok: false, error: String(e) };
+  }
+}
+
+// ── Session / window loading ──
+
+async function loadSessions() {
+  const sessions = await api('/api/sessions');
+  const sel = document.getElementById('session-sel');
+  if (!sessions.length) {
+    sel.innerHTML = '<option value="">No sessions</option>';
+    state.session = '';
+    showNoSession(true);
+    return;
+  }
+  showNoSession(false);
+  const prev = state.session;
+  sel.innerHTML = sessions.map(s => `<option value="${s}"${s===prev?' selected':''}>${s}</option>`).join('');
+  state.session = sel.value;
+  await loadWindows();
+}
+
+async function loadWindows() {
+  if (!state.session) return;
+  const wins = await api(`/api/windows?session=${encodeURIComponent(state.session)}`);
+  const sel = document.getElementById('window-sel');
+  if (!wins.length) {
+    sel.innerHTML = '<option value="">-</option>';
+    state.window = '';
+    return;
+  }
+  const prev = state.window;
+  sel.innerHTML = wins.map(w => `<option value="${w}"${w===prev?' selected':''}>${w}</option>`).join('');
+  state.window = sel.value;
+}
+
+// ── Preview ──
+
+async function refreshPreview() {
+  const t = target();
+  if (!t) return;
+  const data = await api(`/api/capture?target=${encodeURIComponent(t)}`);
+  const pre = document.getElementById('preview');
+  const dot = document.getElementById('status-dot');
+
+  if (data.ok) {
+    dot.classList.remove('err');
+    const atBottom = pre.scrollHeight - pre.scrollTop <= pre.clientHeight + 10;
+    pre.textContent = data.content;
+    if (state.autoScrollPreview || atBottom) {
+      pre.scrollTop = pre.scrollHeight;
+    }
+  } else {
+    dot.classList.add('err');
+  }
+}
+
+// ── Actions ──
+
+async function act(action) {
+  const t = target();
+  if (!t) { flash('No session selected'); return; }
+  const r = await api('/api/action', 'POST', { target: t, action });
+  if (!r.ok) flash(r.error || 'Error');
+  else {
+    if (['split-h','split-v','win-new','win-kill','pane-kill'].includes(action)) {
+      await loadWindows();
+    }
+    await refreshPreview();
+  }
+}
+
+async function confirmAct(action, msg) {
+  if (!confirm(msg)) return;
+  await act(action);
+}
+
+async function newSession() {
+  const r = await api('/api/action', 'POST', { target: 'main', action: 'new-session' });
+  if (!r.ok) flash(r.error || 'Error creating session');
+  else await loadSessions();
+}
+
+async function key(k) {
+  const t = target();
+  if (!t) { flash('No session selected'); return; }
+  const r = await api('/api/send', 'POST', { target: t, keys: k });
+  if (!r.ok) flash(r.error || 'Error');
+  else await refreshPreview();
+}
+
+async function sendText(withEnter) {
+  const t = target();
+  const input = document.getElementById('text-input');
+  const text = input.value;
+  if (!t) { flash('No session selected'); return; }
+  if (!text && !withEnter) return;
+
+  let r;
+  if (text) {
+    r = await api('/api/send', 'POST', { target: t, text, enter: withEnter });
+  } else {
+    r = await api('/api/send', 'POST', { target: t, keys: 'Enter' });
+  }
+
+  if (!r.ok) flash(r.error || 'Error');
+  else {
+    input.value = '';
+    await refreshPreview();
+  }
+}
+
+// ── UI helpers ──
+
+function showNoSession(show) {
+  document.getElementById('no-session').style.display = show ? 'block' : 'none';
+  document.getElementById('controls').style.display = show ? 'none' : 'flex';
+}
+
+let flashTimer = null;
+function flash(msg) {
+  const el = document.getElementById('flash');
+  el.textContent = msg;
+  el.classList.add('show');
+  clearTimeout(flashTimer);
+  flashTimer = setTimeout(() => el.classList.remove('show'), 2500);
+}
+
+// ── Init ──
+
+document.addEventListener('DOMContentLoaded', () => {
+  loadSessions().then(refreshPreview);
+
+  // Auto-refresh preview every 1.5s
+  setInterval(refreshPreview, 1500);
+
+  document.getElementById('session-sel').addEventListener('change', async e => {
+    state.session = e.target.value;
+    await loadWindows();
+    await refreshPreview();
+  });
+
+  document.getElementById('window-sel').addEventListener('change', async e => {
+    state.window = e.target.value;
+    await refreshPreview();
+  });
+
+  document.getElementById('refresh-btn').addEventListener('click', async () => {
+    await loadSessions();
+    await refreshPreview();
+  });
+
+  // Detect manual scroll on preview so we stop auto-scrolling to bottom
+  const pre = document.getElementById('preview');
+  pre.addEventListener('scroll', () => {
+    const atBottom = pre.scrollHeight - pre.scrollTop <= pre.clientHeight + 10;
+    state.autoScrollPreview = atBottom;
+  });
+
+  // Enter on text input = Run
+  document.getElementById('text-input').addEventListener('keydown', e => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      sendText(true);
+    }
+  });
+});
+</script>
+</body>
+</html>
